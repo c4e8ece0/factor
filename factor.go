@@ -43,7 +43,7 @@ func (g *Generic) Get() interface{}   { return g.val }
 func (g *Generic) Error() interface{} { return g.error }
 func (g *Generic) HasError() bool     { return err != nil }
 func (g *Generic) String() string {
-	v, e := g.View(AutoConverter, string)
+	v, e := g.View(Convert, string)
 	if e != nil {
 		g.err = e
 		return ""
@@ -51,7 +51,7 @@ func (g *Generic) String() string {
 	return v
 }
 func (g *Generic) Int() int64 {
-	v, e := g.View(AutoConverter, int64)
+	v, e := g.View(Convert, int64)
 	if e != nil {
 		g.err = e
 		return 0
@@ -59,20 +59,20 @@ func (g *Generic) Int() int64 {
 	return v
 }
 func (g *Generic) Float() float64 {
-	v, e := g.View(AutoConverter, float64)
+	v, e := g.View(Convert, float64)
 	if e != nil {
 		g.err = e
-		return ""
+		return 0.0
 	}
 	return v
 }
 func (g *Generic) Bool() bool {
-	v, e := g.View(AutoConverter, bool)
+	v, e := g.View(Convert, bool)
 	if e != nil {
 		g.err = e
-		return 0
+		return false
 	}
-	return v
+	return true
 }
 func (g *Generic) Bin() uint8 {
 	if g.Bool() {
@@ -85,27 +85,28 @@ func (g *Generic) View(f Conteverter) (interface{}, error) {
 }
 
 // Internal Custom Converter example
-func Converter(value interface{}, to_type interface{}) (interface{}, error) {
+// was AutoConverter
+func Convert(value interface{}, to interface{}) (interface{}, error) {
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
 
 	case reflect.String:
-		return FromString(string(value), to_type)
+		return FromString(string(value), to)
 
 	case reflect.Int64:
-		return FromInt64(int64(value), to_type)
+		return FromInt64(int64(value), to)
 
 	case reflect.Float64:
-		return FromFloat64(float64(value), to_type)
+		return FromFloat64(float64(value), to)
 
 	case reflect.Bool:
-		return FromBool(bool(value), to_type)
+		return FromBool(bool(value), to)
 
 	}
 }
 
-func FromString(t string, to_type interface{}) (interface{}, error) {
-	switch to_type {
+func FromString(t string, to interface{}) (interface{}, error) {
+	switch to {
 	case string:
 		return t
 	case int64:
@@ -120,8 +121,8 @@ func FromString(t string, to_type interface{}) (interface{}, error) {
 	}
 }
 
-func FromInt64(t int64, to_type interface{}) (interface{}, error) {
-	switch to_type {
+func FromInt64(t int64, to interface{}) (interface{}, error) {
+	switch to {
 	case string:
 		return fmt.Sprintf("%d", t)
 	case int64:
@@ -136,8 +137,8 @@ func FromInt64(t int64, to_type interface{}) (interface{}, error) {
 	}
 }
 
-func FromFloat64(t float64, to_type interface{}) (interface{}, error) {
-	switch to_type {
+func FromFloat64(t float64, to interface{}) (interface{}, error) {
+	switch to {
 	case string:
 		return fmt.Sprintf("%f", t)
 	case int64:
@@ -152,8 +153,8 @@ func FromFloat64(t float64, to_type interface{}) (interface{}, error) {
 	}
 }
 
-func FromBool(t bool, to_type interface{}) (interface{}, error) {
-	switch to_type {
+func FromBool(t bool, to interface{}) (interface{}, error) {
+	switch to {
 	case string:
 		if t {
 			return "true_string"
